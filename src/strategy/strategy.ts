@@ -5,7 +5,7 @@ import { CoinType, CurrencyType } from "../types/currency";
  * StrategyConfig is a type that defines the configuration for a strategy.
  */
 export type StrategyConfig = {
-  alertInterval?: number; // how frequent the strategy should check price and send alert
+  pollingInterval?: number; // how frequent the strategy should check price and send alert
   upperThreshold: number;
   lowerThreshold: number;
   precision?: number;
@@ -21,56 +21,57 @@ export class Strategy {
     ["idr", "Rp"],
     ["usd", "$"],
   ]);
-  private _intervalId: NodeJS.Timeout | null = null;
-  private _lastAlertTimestamp: number = Date.now();
+  public lastTimestamp: number;
+  private _lastPriceState: -1 | 0 | 1 | null = null``; // below, between, above
 
   constructor(exchange: Exchange, config: StrategyConfig) {
     this._exchange = exchange;
     this._config = {
       precision: 3,
-      alertInterval: 15 * 60 * 1000,
+      pollingInterval: 15 * 60 * 1000,
       currencyUnit: "usd",
       ...config,
     };
     this._exchange.init(config.currencyUnit, config.coinType);
   }
 
-  get alertInterval(): number {
-    return this._config.alertInterval;
-  }
-
-  setIntervalId(intervalId: NodeJS.Timeout) {
-    if (this._intervalId) {
-      clearInterval(this._intervalId);
-    }
-    this._intervalId = intervalId;
-  }
-
-  get lastAlertTimestamp(): number {
-    return this._lastAlertTimestamp;
-  }
-
-  setLastAlertTimestamp(timestamp: number) {
-    this._lastAlertTimestamp = timestamp;
+  get pollingInterval(): number {
+    return this._config.pollingInterval;
   }
 
   public async run(): Promise<string[]> {
     const latestPrice = await this._exchange.getLatestPrice();
     const alertMessages = [];
     const currencySymbol = this._currencyUnitMap.get(this._config.currencyUnit);
-    if (latestPrice.price >= this._config.upperThreshold) {
+    if (latestPrice.price >= this._config.upperThreshold && this._lastPriceState !== 1) {
       alertMessages.push(
         `${this._config.coinType.toUpperCase()} price is >= ${currencySymbol}${
           this._config.upperThreshold
         } (current price: ${currencySymbol}${latestPrice.price.toFixed(this._config.precision)})`
       );
-    } else if (latestPrice.price < this._config.lowerThreshold) {
+      this._lastPriceState = 1;
+    } else if (
+      latestPrice.price >= this._config.lowerThreshold &&
+      latestPrice.price <= this._config.upperThreshold &&
+      this._lastPriceState !== 0
+    ) {
+      alertMessages.push(
+        `${this._config.coinType.toUpperCase()} price is between ${currencySymbol}${
+          this._config.lowerThreshold
+        } and ${currencySymbol}${
+          this._config.upperThreshold
+        } (current price: ${currencySymbol}${latestPrice.price.toFixed(this._config.precision)})`
+      );
+      this._lastPriceState = 0;
+    } else if (latestPrice.price < this._config.lowerThreshold && this._lastPriceState !== -1) {
       alertMessages.push(
         `${this._config.coinType.toUpperCase()} price is < ${currencySymbol}${
           this._config.lowerThreshold
         } (current price: ${currencySymbol}${latestPrice.price.toFixed(this._config.precision)})`
       );
+      this._lastPriceState = -1;
     }
+
     return alertMessages;
   }
 }
