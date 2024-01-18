@@ -62,7 +62,7 @@ const main = async () => {
       lowerThreshold: Number(matches[1]),
       upperThreshold: Number(matches[2]),
       currencyUnit: (matches[3] as CurrencyType) ?? "usd",
-      pollingInterval: (matches[4] ? Number(matches[4]) : 15) * 60 * 1000,
+      pollingInterval: (matches[4] ? Number(matches[4]) : 1) * 60 * 1000,
     };
 
     if (strategyConfig.currencyUnit && !CURRENCIES.includes(strategyConfig.currencyUnit)) {
