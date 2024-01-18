@@ -1,19 +1,15 @@
 import { Exchange } from "../exchange/exchange";
 import { CoinType, CurrencyType } from "../types/currency";
 
-/**
- * StrategyConfig is a type that defines the configuration for a strategy.
- */
 export type StrategyConfig = {
-  pollingInterval?: number; // how frequent the strategy should check price and send alert
+  pollingInterval: number; // make it required
   upperThreshold: number;
   lowerThreshold: number;
-  precision?: number;
-  currencyUnit?: CurrencyType;
+  precision: number; // make it required
+  currencyUnit: CurrencyType; // make it required
   coinType: CoinType;
 };
 
-// TODO: support multiple exchanges?
 export class Strategy {
   private _exchange: Exchange;
   private _config: StrategyConfig;
@@ -21,17 +17,12 @@ export class Strategy {
     ["idr", "Rp"],
     ["usd", "$"],
   ]);
-  public lastTimestamp: number;
-  private _lastPriceState: -1 | 0 | 1 | null = null; // below, between, above
+  public lastTimestamp: number = Date.now(); // initialize it
+  private _lastPriceState: -1 | 0 | 1 | null = null;
 
   constructor(exchange: Exchange, config: StrategyConfig) {
     this._exchange = exchange;
-    this._config = {
-      precision: 3,
-      pollingInterval: 15 * 60 * 1000,
-      currencyUnit: "usd",
-      ...config,
-    };
+    this._config = config;
     this._exchange.init(config.currencyUnit, config.coinType);
   }
 
@@ -41,8 +32,8 @@ export class Strategy {
 
   public async run(): Promise<string[]> {
     const latestPrice = await this._exchange.getLatestPrice();
-    const alertMessages = [];
-    const currencySymbol = this._currencyUnitMap.get(this._config.currencyUnit);
+    const alertMessages: string[] = []; // specify type
+    const currencySymbol = this._currencyUnitMap.get(this._config.currencyUnit) || "$"; // provide a default value
     if (latestPrice.price >= this._config.upperThreshold && this._lastPriceState !== 1) {
       alertMessages.push(
         `${this._config.coinType.toUpperCase()} price is >= ${currencySymbol}${

@@ -10,9 +10,9 @@ type CoinGeckoResponse = {
 
 export class CoinGecko implements Exchange {
   private _baseUrl = 'https://www.coingecko.com/price_charts'
-  private _currencyUnit: CurrencyType;
-  private _coinType: CoinType;
-  private _url: string;
+  private _currencyUnit: CurrencyType = 'usd';
+  private _coinType: CoinType = 'sol';
+  private _url: string = '';
   private _coinTypeMap: Map<CoinGeckoSupportedCoinType, string> = new Map<CoinGeckoSupportedCoinType, string>([
     ['sol', '4128'],
     ['sui', '26375'],

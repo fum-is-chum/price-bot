@@ -58,6 +58,7 @@ const main = async () => {
 
     const strategyConfig: StrategyConfig = {
       coinType,
+      precision: 3,
       lowerThreshold: Number(matches[1]),
       upperThreshold: Number(matches[2]),
       currencyUnit: (matches[3] as CurrencyType) ?? "usd",
