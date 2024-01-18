@@ -11,7 +11,7 @@ const main = async () => {
     intervalId: NodeJS.Timeout
   }> = new Map();
   let errSent = false;
-  const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+  const bot = new TelegramBot(process.env.BOT_TOKEN!, { polling: true });
 
   bot.onText(/\/start/, (msg) => {
     bot.sendMessage(msg.chat.id, "Welcome to Crypto Alert Bot!");
@@ -75,6 +75,7 @@ const main = async () => {
 
     // start setInterval
     const intervalId = setInterval(async () => {
+      console.log(`Running strategy for ${strategyConfig.coinType}`)
       try {
         const now = Date.now();
         if(now - strategy.lastTimestamp >= 60 * 1000) { // delay at least 1 min in case fluctuating price
