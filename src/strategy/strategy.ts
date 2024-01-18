@@ -22,7 +22,7 @@ export class Strategy {
     ["usd", "$"],
   ]);
   public lastTimestamp: number;
-  private _lastPriceState: -1 | 0 | 1 | null = null``; // below, between, above
+  private _lastPriceState: -1 | 0 | 1 | null = null; // below, between, above
 
   constructor(exchange: Exchange, config: StrategyConfig) {
     this._exchange = exchange;

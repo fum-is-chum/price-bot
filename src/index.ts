@@ -60,11 +60,11 @@ const main = async () => {
       coinType,
       lowerThreshold: Number(matches[1]),
       upperThreshold: Number(matches[2]),
-      currencyUnit: (matches[3]! as CurrencyType) ?? "usd",
+      currencyUnit: (matches[3] as CurrencyType) ?? "usd",
       pollingInterval: (matches[4] ? Number(matches[4]) : 15) * 60 * 1000,
     };
 
-    if (!CURRENCIES.includes(strategyConfig.currencyUnit)) {
+    if (strategyConfig.currencyUnit && !CURRENCIES.includes(strategyConfig.currencyUnit)) {
       bot.sendMessage(chatId, `Currency unit ${strategyConfig.currencyUnit} is not supported`);
       return;
     }
@@ -85,10 +85,10 @@ const main = async () => {
           const alertMessages = await strategy.run();
           if (alertMessages.length > 0) bot.sendMessage(chatId, alertMessages.join("\n"));
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error(e);
         if(!errSent) {
-          bot.sendMessage(chatId, `An error occurred: ${e.message}`);
+          bot.sendMessage(chatId, `An error occurred: ${e?.message}`);
           errSent = true;
         }
       }
@@ -100,6 +100,7 @@ const main = async () => {
 
   bot.onText(/\/stop (.*)/, async (msg, match) => {
     const chatId = msg.chat.id;
+    if(!match) return;
     const matches = match[1].split(" ");
     if (matches.length < 1) {
       bot.sendMessage(chatId, "Please provide coin_type");
