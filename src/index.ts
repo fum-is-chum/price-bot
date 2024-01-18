@@ -37,6 +37,8 @@ const main = async () => {
 
   bot.onText(/\/alert (.*)/, async (msg, match) => {
     const chatId = msg.chat.id;
+    if(!match) return;
+
     const matches = match[1].split(" ");
     if (matches.length < 3) {
       bot.sendMessage(chatId, "Please provide coin_type, lower and upper threshold");
@@ -58,7 +60,7 @@ const main = async () => {
       coinType,
       lowerThreshold: Number(matches[1]),
       upperThreshold: Number(matches[2]),
-      currencyUnit: (matches[3] as CurrencyType) ?? "usd",
+      currencyUnit: (matches[3]! as CurrencyType) ?? "usd",
       pollingInterval: (matches[4] ? Number(matches[4]) : 15) * 60 * 1000,
     };
 
