@@ -19,7 +19,7 @@ export class Strategy {
   ]);
   public lastTimestamp: number = Date.now(); // initialize it
   private _lastPriceState: -1 | 0 | 1 | null = null;
-
+  private _lastPrice: number = 0;
   constructor(exchange: Exchange, config: StrategyConfig) {
     this._exchange = exchange;
     this._config = config;
@@ -30,11 +30,15 @@ export class Strategy {
     return this._config.pollingInterval;
   }
 
+  get lastPrice(): number {
+    return this._lastPrice;
+  }
+
   public async run(): Promise<string[]> {
     const latestPrice = await this._exchange.getLatestPrice();
     const alertMessages: string[] = []; // specify type
     const currencySymbol = this._currencyUnitMap.get(this._config.currencyUnit) || "$"; // provide a default value
-    if (latestPrice.price >= this._config.upperThreshold && this._lastPriceState !== 1) {
+    if (latestPrice.price >= this._config.upperThreshold && Math.abs(latestPrice.price - this._config.upperThreshold) >= 10**-1 && this._lastPriceState !== 1) {
       alertMessages.push(
         `${this._config.coinType.toUpperCase()} price is >= ${currencySymbol}${
           this._config.upperThreshold
@@ -54,7 +58,7 @@ export class Strategy {
         } (current price: ${currencySymbol}${latestPrice.price.toFixed(this._config.precision)})`
       );
       this._lastPriceState = 0;
-    } else if (latestPrice.price < this._config.lowerThreshold && this._lastPriceState !== -1) {
+    } else if (latestPrice.price < this._config.lowerThreshold && Math.abs(latestPrice.price - this._config.lowerThreshold) >= 10**-1 && this._lastPriceState !== -1) {
       alertMessages.push(
         `${this._config.coinType.toUpperCase()} price is < ${currencySymbol}${
           this._config.lowerThreshold
@@ -63,6 +67,7 @@ export class Strategy {
       this._lastPriceState = -1;
     }
 
+    this._lastPrice = latestPrice.price;
     return alertMessages;
   }
 }

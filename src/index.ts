@@ -125,6 +125,19 @@ const main = async () => {
     bot.sendMessage(chatId, `Alert for ${coinType} has been stopped`);
   });
 
+  bot.onText(/\/list/, async (msg) => {
+    const chatId = msg.chat.id;
+    const strategyPromises = COIN_TYPES.map(async (coinType) => {
+      const strategy = intervals.get(coinType)?.strategy;
+      if(!strategy) return null;
+      await strategy.run();
+      return `${coinType.toUpperCase()}: ${strategy.lastPrice.toFixed(3)}`;
+    });
+    
+    const result = (await Promise.all(strategyPromises)).filter((value) => !!value);
+    if(!result || result.length === 0) return;
+    bot.sendMessage(chatId, result.join("\n"));
+  });
   console.log("Bot is online");
 
   process.on("exit", () => clearAllIntervals(true));
