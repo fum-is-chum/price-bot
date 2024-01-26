@@ -38,7 +38,8 @@ export class Strategy {
     const latestPrice = await this._exchange.getLatestPrice();
     const alertMessages: string[] = []; // specify type
     const currencySymbol = this._currencyUnitMap.get(this._config.currencyUnit) || "$"; // provide a default value
-    if (latestPrice.price >= this._config.upperThreshold && Math.abs(latestPrice.price - this._config.upperThreshold) >= 10**-1 && this._lastPriceState !== 1) {
+    const tolerance = 0.15 * (this._config.upperThreshold - this._config.lowerThreshold);
+    if (latestPrice.price >= this._config.upperThreshold && Math.abs(latestPrice.price - this._config.upperThreshold) >= tolerance && this._lastPriceState !== 1) {
       alertMessages.push(
         `${this._config.coinType.toUpperCase()} price is >= ${currencySymbol}${
           this._config.upperThreshold
@@ -58,7 +59,7 @@ export class Strategy {
         } (current price: ${currencySymbol}${latestPrice.price.toFixed(this._config.precision)})`
       );
       this._lastPriceState = 0;
-    } else if (latestPrice.price < this._config.lowerThreshold && Math.abs(latestPrice.price - this._config.lowerThreshold) >= 10**-1 && this._lastPriceState !== -1) {
+    } else if (latestPrice.price < this._config.lowerThreshold && Math.abs(latestPrice.price - this._config.lowerThreshold) >= tolerance && this._lastPriceState !== -1) {
       alertMessages.push(
         `${this._config.coinType.toUpperCase()} price is < ${currencySymbol}${
           this._config.lowerThreshold

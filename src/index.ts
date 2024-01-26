@@ -21,7 +21,7 @@ const main = async () => {
     const helpMessage = `
   *Commands:*
   /alert <coinType> <lowerThreshold> <upperThreshold> <currencyUnit> <pollingInterval>
-  Example: /alert sol 95 102 1 15
+  Example: /alert sol 95 102 usd 1
 
   /stop <coinType>
   Example: /stop sui
